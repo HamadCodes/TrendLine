@@ -9,7 +9,7 @@ import { useCart } from '../../../context/CartContext';
 
 // Image URL Builder
 const builder = imageUrlBuilder(client);
-const urlFor = (source: any) => builder.image(source);
+const urlFor = (source) => builder.image(source);
 
 // Type Definitions
 interface Product {

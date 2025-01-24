@@ -10,7 +10,7 @@ import { useSearch } from '@/context/SearchContext';
 
 // Image URL Builder
 const builder = imageUrlBuilder(client);
-const urlFor = (source: any) => builder.image(source);
+const urlFor = (source) => builder.image(source);
 
 // Type Definitions
 interface Product {
@@ -32,7 +32,6 @@ interface Product {
 
 export default function ProductsPage() {
   const { searchQuery } = useSearch();
-  const { addToCart } = useCart();
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
 
