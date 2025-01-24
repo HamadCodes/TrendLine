@@ -1,101 +1,108 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import Image from 'next/image';
+import { useEffect, useState } from 'react';
+import { client } from '../sanity/lib/client';
+import imageUrlBuilder from '@sanity/image-url';
+import { useCart } from '../context/CartContext';
+import Link from 'next/link';
+import { useSearch } from '@/context/SearchContext';
+
+// Image URL Builder
+const builder = imageUrlBuilder(client);
+const urlFor = (source: any) => builder.image(source);
+
+// Type Definitions
+interface Product {
+  _id: string;
+  name: string;
+  price: number;
+  description: string;
+  image?: {
+    asset: {
+      _ref: string;
+    };
+  };
+  category: string;
+  discountPercent?: number;
+  new?: boolean;
+  colors?: string[];
+  sizes?: string[];
+}
+
+export default function ProductsPage() {
+  const { searchQuery } = useSearch();
+  const { addToCart } = useCart();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+
+  // Fetch Products on Mount
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const fetchedProducts: Product[] = await client.fetch(`*[_type == "products"]`);
+      setProducts(fetchedProducts);
+    };
+    fetchProducts();
+  }, []);
+
+  // Filter Products by Search Query
+  useEffect(() => {
+    const filtered = products.filter((product) =>
+      product.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    setFilteredProducts(filtered);
+  }, [searchQuery, products]);
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+    <div className="min-h-screen bg-gray-100 p-4">
+      <h1 className="text-3xl font-bold text-center mb-6">Our Products</h1>
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-6">
+        {filteredProducts.map((product) => (
+          <Link href={`/product/${product._id}`} key={product._id}>
+            <div className="bg-white rounded-lg shadow-md overflow-hidden p-4 max-sm:p-0 cursor-pointer">
+              {product.image && (
+                <div className="flex items-center justify-center">
+                  <Image
+                    src={urlFor(product.image).width(300).height(300).url()}
+                    alt={product.name}
+                    width={300}
+                    height={300}
+                    className="rounded-lg"
+                  />
+                </div>
+              )}
+              <div className='max-sm:p-4'>
+              <h2 className="max-sm:text-sm text-xl font-semibold mt-4 max-sm:mt-0">{product.name}</h2>
+              <p className="text-gray-500">{product.category}</p>
+              <p className="mt-2 text-gray-800">${product.price.toFixed(2)}</p>
+              {product.new && (
+                <span className="inline-block mt-2 px-2 py-1 text-xs font-semibold text-white bg-green-500 rounded">
+                  New
+                </span>
+              )}
+              {product.discountPercent && product.discountPercent > 0 && (
+                <p className="text-red-500 font-bold">
+                  {product.discountPercent}% Off!
+                </p>
+              )}
+              <div className="mt-2 flex gap-2">
+                {product.colors?.map((color, index) => (
+                  <span
+                    key={index}
+                    className="block max-sm:w-3 max-sm:h-3 w-6 h-6 rounded-full"
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+              </div>
+              <div className="mt-2">
+                <p className="text-sm font-semibold">Sizes:</p>
+                <p>{product.sizes?.join(', ')}</p>
+              </div>
+            </div>
+            </div>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }
