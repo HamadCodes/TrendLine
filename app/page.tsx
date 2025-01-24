@@ -4,7 +4,6 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import { client } from '../sanity/lib/client';
 import imageUrlBuilder from '@sanity/image-url';
-import { useCart } from '../context/CartContext';
 import Link from 'next/link';
 import { useSearch } from '@/context/SearchContext';
 
